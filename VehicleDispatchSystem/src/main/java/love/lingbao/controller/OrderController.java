@@ -54,7 +54,7 @@ public class OrderController {
     public R<VehicleOrder> createOrder(@RequestBody VehicleOrderDto vehicleOrderDto){
         log.info("/order/createOrder post -> vehicleOrderDto = {}; 生成车辆订单", vehicleOrderDto);
 
-        return R.error("");
+        return R.error("订单生成失败");
     }
 
 }
