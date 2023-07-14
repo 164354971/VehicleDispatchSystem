@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="ALL" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="502014fe-41dd-483b-aeef-30d95ba82ad5" name="Changes" comment="" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="CodeInsightWorkspaceSettings">
+    <option name="optimizeImportsOnTheFly" value="true" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Interface" />
+        <option value="spring-beans.schema" />
+        <option value="Class" />
+      </list>
+    </option>
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="MavenImportPreferences">
+    <option name="generalSettings">
+      <MavenGeneralSettings>
+        <option name="mavenHome" value="$PROJECT_DIR$/../../software/Maven/apache-maven-3.9.2" />
+        <option name="userSettingsFile" value="E:\Program Files\software\Maven\apache-maven-3.9.2\conf\settings.xml" />
+      </MavenGeneralSettings>
+    </option>
+  </component>
+  <component name="MavenRunner">
+    <option name="jreName" value="corretto-1.8" />
+    <option name="vmOptions" value="-DarchetypeCatalog=internal" />
+  </component>
+  <component name="ProjectId" id="2Ripvym9d8PL6bpFYtLkHzI67dS" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RequestMappingsPanelOrder0": "0",
+    "RequestMappingsPanelOrder1": "1",
+    "RequestMappingsPanelWidth0": "75",
+    "RequestMappingsPanelWidth1": "75",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "WebServerToolWindowFactoryState": "false",
+    "com.intellij.openapi.externalSystem.service.settings.ExternalSystemGroupConfigurable": "ALL",
+    "last_opened_file_path": "E:/Program Files/Project/VehicleDispatchSystem/VehicleDispatchSystem",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "settings.editor.selected.configurable": "preferences.pluginManager",
+    "spring.configuration.checksum": "1de0fc20110672bd2861670f68dc9154",
+    "vue.rearranger.settings.migration": "true"
+  },
+  "keyToStringList": {
+    "DatabaseDriversLRU": [
+      "mysql"
+    ]
+  }
+}]]></component>
+  <component name="ReactorSettings">
+    <option name="notificationShown" value="true" />
+  </component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="E:\Program Files\Project\VehicleDispatchSystem\src\main\resources\mapper" />
+      <recent name="E:\Program Files\Project\VehicleDispatchSystem\src\main\resources\static\image\brand" />
+      <recent name="E:\Program Files\Project\VehicleDispatchSystem\src\main\resources\static\image\model" />
+      <recent name="E:\Program Files\Project\VehicleDispatchSystem\src\main\resources\static\image\head" />
+      <recent name="E:\Program Files\Project\VehicleDispatchSystem\src\main\resources\static\image\car" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="E:\Program Files\Project\VehicleDispatchSystem\src\main\resources\static\image\model" />
+      <recent name="E:\Program Files\Project\VehicleDispatchSystem\src\main\resources\static\image" />
+    </key>
+    <key name="MoveClassesOrPackagesDialog.RECENTS_KEY">
+      <recent name="love.lingbao" />
+    </key>
+    <key name="CopyClassDialog.RECENTS_KEY">
+      <recent name="love.lingbao.domain.dto.vehicle" />
+      <recent name="love.lingbao.domain.entity" />
+      <recent name="love.lingbao.controller" />
+      <recent name="love.lingbao.service.impl.vehicle" />
+      <recent name="love.lingbao.service.vehicle" />
+    </key>
+  </component>
+  <component name="RunManager">
+    <configuration name="VehicleDispatchSystemApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+      <module name="VehicleDispatchSystem" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="love.lingbao.VehicleDispatchSystemApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="502014fe-41dd-483b-aeef-30d95ba82ad5" name="Changes" comment="" />
+      <created>1687742993434</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1687742993434</updated>
+      <workItem from="1687742994617" duration="2412000" />
+      <workItem from="1687767664865" duration="8915000" />
+      <workItem from="1687777046597" duration="9700000" />
+      <workItem from="1687841562399" duration="66000" />
+      <workItem from="1687847544972" duration="22167000" />
+      <workItem from="1687926732183" duration="4253000" />
+      <workItem from="1687971525044" duration="90000" />
+      <workItem from="1687971620839" duration="2210000" />
+      <workItem from="1687973937815" duration="11000" />
+      <workItem from="1687996777717" duration="4240000" />
+      <workItem from="1688029869670" duration="6904000" />
+      <workItem from="1688106697573" duration="9564000" />
+      <workItem from="1688126590370" duration="7851000" />
+      <workItem from="1688299830666" duration="11365000" />
+      <workItem from="1688341236512" duration="8027000" />
+      <workItem from="1688372139821" duration="8225000" />
+      <workItem from="1688451320661" duration="5305000" />
+      <workItem from="1688471774434" duration="6663000" />
+      <workItem from="1688526198016" duration="18179000" />
+      <workItem from="1688600759097" duration="10683000" />
+      <workItem from="1688632592172" duration="1614000" />
+      <workItem from="1688697456455" duration="4884000" />
+      <workItem from="1688731392752" duration="5491000" />
+      <workItem from="1688817013631" duration="7220000" />
+      <workItem from="1688881127449" duration="14332000" />
+      <workItem from="1688963103703" duration="16697000" />
+      <workItem from="1689051247572" duration="21857000" />
+      <workItem from="1689323775184" duration="183000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="XSLT-Support.FileAssociations.UIState">
+    <expand />
+    <select />
+  </component>
+</project>

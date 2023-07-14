@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="love.lingbao.mapper.EvaluateMapper">
+    <select id="findNewUpdateTimeEvaluateList" resultType="love.lingbao.domain.entity.Evaluate">
+        SELECT t.* FROM
+            (
+            SELECT
+                 vehicle_car_id,max(update_time) as update_time
+            FROM
+                 evaluate
+            GROUP BY vehicle_car_id
+            )
+        a
+            LEFT JOIN
+        evaluate t
+            ON
+        t.vehicle_car_id = a.vehicle_car_id
+        and
+        t.vehicle_car_id in
+        (
+            <foreach collection="vehicleCarIdList" item="id" separator=",">
+                #{id}
+            </foreach>
+        )
+        and t.update_time=a.update_time
+        where t.id is not null
+        limit 0,5
+    </select>
+</mapper>

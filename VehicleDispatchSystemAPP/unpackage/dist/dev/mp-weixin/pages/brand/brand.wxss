@@ -1,0 +1,21 @@
+
+.title{
+	width: 750rpx;
+	height: 100rpx;
+	text-align: center;
+	line-height: 100rpx;
+	margin-top: 60rpx;
+	color: #464646;
+}
+.title ._span{
+	font-size: 42rpx;
+	/*letter-spacing:1rpx;  */
+	font-weight: 550;
+}
+.initial{
+	width: 730rpx;
+	padding: 0 10rpx;
+	background-color: #e3e3e3;
+	color: #575757;
+}
+

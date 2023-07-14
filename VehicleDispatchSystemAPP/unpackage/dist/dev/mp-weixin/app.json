@@ -1,0 +1,51 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/login/login",
+    "pages/home/home",
+    "pages/details/details",
+    "pages/demo/demo",
+    "pages/brand/brand",
+    "pages/model/model",
+    "pages/car/car",
+    "pages/navigation/navigation"
+  ],
+  "subPackages": [],
+  "window": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "uni-app",
+    "navigationBarBackgroundColor": "#F8F8F8",
+    "backgroundColor": "#F8F8F8"
+  },
+  "tabBar": {
+    "borderStyle": "black",
+    "selectedColor": "#0055ff",
+    "color": "#444444",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "iconPath": "static/tabbar/index_hidden.png",
+        "selectedIconPath": "static/tabbar/index_selected.png",
+        "text": "首页"
+      },
+      {
+        "pagePath": "pages/brand/brand",
+        "iconPath": "static/tabbar/car_hidden.png",
+        "selectedIconPath": "static/tabbar/car_selected.png",
+        "text": "选车"
+      },
+      {
+        "pagePath": "pages/home/home",
+        "iconPath": "static/tabbar/home_hidden.png",
+        "selectedIconPath": "static/tabbar/home_selected.png",
+        "text": "我的"
+      }
+    ]
+  },
+  "permission": {
+    "scope.userLocation": {
+      "desc": "位置权限"
+    }
+  },
+  "usingComponents": {}
+}

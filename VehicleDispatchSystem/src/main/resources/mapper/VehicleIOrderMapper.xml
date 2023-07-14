@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="love.lingbao.mapper.vehicle.VehicleOrderMapper">
+    <select id="findTimeFrameVehicleCarIdList" resultType="love.lingbao.domain.entity.vehicle.VehicleOrder">
+        select
+            t.*
+        from
+            vehicle_order t
+        where
+            not (
+                    (t.end_time &lt;= #{startTime}) or (t.start_time &gt;= #{endTime})
+                )
+            and
+                t.status not in (3, 6, 7)
+        ;
+    </select>
+</mapper>

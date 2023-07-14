@@ -1,0 +1,1 @@
+<view class="data-v-eae40a34"><button type="default" data-event-opts="{{[['tap',[['getCurrentLocation']]]]}}" bindtap="__e" class="data-v-eae40a34">获取当前位置</button><button type="primary" data-event-opts="{{[['tap',[['getaddress']]]]}}" bindtap="__e" class="data-v-eae40a34">获取选择的位置</button><view style="color:red;" class="data-v-eae40a34">{{''+positionInfo.address+''}}</view></view>

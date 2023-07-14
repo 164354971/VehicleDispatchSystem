@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="love.lingbao.mapper.CouponUserMapper">
+    <select id="findUserForCouponList" resultType="love.lingbao.domain.entity.CouponUser">
+        SELECT c.* FROM
+            coupon c
+        where
+            c.id
+                in
+            (
+                 select uc.coupon_id from
+                    coupon_user uc
+                 where
+                     uc.user_id = #{id}
+                 and
+                     uc.status = 1
+                 and
+                     uc.start_time &lt;= #{current_time}
+                 and
+                     uc.end_time >= #{current_time}
+            )
+        ;
+    </select>
+</mapper>
