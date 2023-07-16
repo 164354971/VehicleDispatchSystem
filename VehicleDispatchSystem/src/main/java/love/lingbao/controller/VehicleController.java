@@ -406,38 +406,44 @@ public class VehicleController {
     public R<List<VehicleBrandVo>> listBrand(@RequestParam("name") String name){
         log.info("/vehicle/listBrand get -> listBrand: name = {}; 品牌列表查询", name);
         //log.info(String.valueOf((Integer) httpSession.getAttribute("admin")));
-        //1.获取品牌信息体的分页
-        LambdaQueryWrapper<VehicleBrand> queryWrapper = new LambdaQueryWrapper<>();
-        //2.如果有查找则按字符串查找
-        queryWrapper.like(!StringUtils.isEmpty(name), VehicleBrand::getBrand, name);
-        queryWrapper.like(!StringUtils.isEmpty(name), VehicleBrand::getInitial, name);
-        //3.正序排序
-        //queryWrapper.orderByAsc(VehicleBrand::getBrand);
-        //4.数据导入info
-        List<VehicleBrand> list = vehicleBrandService.list(queryWrapper);
-        TreeMap<String, List<VehicleBrand>> treeMap = new TreeMap<>();
-        list.forEach(e -> {
-            String initial = e.getInitial();
-            if(treeMap.containsKey(initial)){
-                List<VehicleBrand> vehicleBrandList = treeMap.get(initial);
-                vehicleBrandList.add(e);
-                treeMap.put(initial, vehicleBrandList);
-            }else{
-                List<VehicleBrand> vehicleBrandList = new LinkedList<>();
-                vehicleBrandList.add(e);
-                treeMap.put(initial, vehicleBrandList);
+        ListOperations<String, VehicleBrandVo> vehicleBrandVoListOperations = (ListOperations<String, VehicleBrandVo>)redisTemplate.opsForList();
+        List<VehicleBrandVo> vehicleBrandVoList = vehicleBrandVoListOperations.range(RedisConstants.Brand_List_KEY + name, 0, -1);
+        if(vehicleBrandVoList.size() == 0){
+            //1.获取品牌信息体的分页
+            LambdaQueryWrapper<VehicleBrand> queryWrapper = new LambdaQueryWrapper<>();
+            //2.如果有查找则按字符串查找
+            queryWrapper.like(!StringUtils.isEmpty(name), VehicleBrand::getBrand, name);
+            queryWrapper.like(!StringUtils.isEmpty(name), VehicleBrand::getInitial, name);
+            //3.正序排序
+            //queryWrapper.orderByAsc(VehicleBrand::getBrand);
+            //4.数据导入info
+            List<VehicleBrand> list = vehicleBrandService.list(queryWrapper);
+            TreeMap<String, List<VehicleBrand>> treeMap = new TreeMap<>();
+            list.forEach(e -> {
+                String initial = e.getInitial();
+                if(treeMap.containsKey(initial)){
+                    List<VehicleBrand> vehicleBrandList = treeMap.get(initial);
+                    vehicleBrandList.add(e);
+                    treeMap.put(initial, vehicleBrandList);
+                }else{
+                    List<VehicleBrand> vehicleBrandList = new LinkedList<>();
+                    vehicleBrandList.add(e);
+                    treeMap.put(initial, vehicleBrandList);
+                }
+            });
+            vehicleBrandVoList = new LinkedList<>();
+
+            for(Map.Entry<String,List<VehicleBrand>> entry : treeMap.entrySet()){
+                VehicleBrandVo vehicleBrandVo = new VehicleBrandVo();
+                vehicleBrandVo.setInitial(entry.getKey());
+                vehicleBrandVo.setBrandList(entry.getValue());
+                vehicleBrandVoList.add(vehicleBrandVo);
+                System.out.println(entry.getKey());
+                System.out.println(entry.getValue());
             }
-        });
 
-        List<VehicleBrandVo> vehicleBrandVoList = new LinkedList<>();
-
-        for(Map.Entry<String,List<VehicleBrand>> entry : treeMap.entrySet()){
-            VehicleBrandVo vehicleBrandVo = new VehicleBrandVo();
-            vehicleBrandVo.setInitial(entry.getKey());
-            vehicleBrandVo.setBrandList(entry.getValue());
-            vehicleBrandVoList.add(vehicleBrandVo);
-            System.out.println(entry.getKey());
-            System.out.println(entry.getValue());
+            vehicleBrandVoListOperations.rightPushAll(RedisConstants.Brand_List_KEY + name, vehicleBrandVoList);
+            redisTemplate.expire(RedisConstants.Brand_List_KEY + name, 1L, TimeUnit.DAYS);
         }
         return R.success(vehicleBrandVoList);
     }
@@ -639,9 +645,11 @@ public class VehicleController {
         List<Parkade> parkadeList;
         ListOperations<String, Parkade> parkadeListOperationsOperations = (ListOperations<String, Parkade>)redisTemplate.opsForList();
         if(area.equals("永川")){
-            parkadeList = parkadeListOperationsOperations.range(RedisConstants.PARKADE_KEY_yongchuan, 0, -1);
+            parkadeList = parkadeListOperationsOperations.range(RedisConstants.PARKADE_YONGCHUAN_List_KEY, 0, -1);
+        }else if(area.equals("巴南")){
+            parkadeList = parkadeListOperationsOperations.range(RedisConstants.PARKADE_BANAN_List_KEY, 0, -1);
         }else{
-            parkadeList = parkadeListOperationsOperations.range(RedisConstants.PARKADE_KEY_banan, 0, -1);
+            return R.error("校区位置查询失败");
         }
 
         //如果没有缓存，则访问数据库
@@ -650,12 +658,12 @@ public class VehicleController {
             lqw.eq(StringUtils.hasLength(area), Parkade::getAreaSchool, area);
             parkadeList = parkadeService.list(lqw);
             if(area.equals("永川")){
-                parkadeListOperationsOperations.leftPushAll(RedisConstants.PARKADE_KEY_yongchuan, parkadeList);
+                parkadeListOperationsOperations.rightPushAll(RedisConstants.PARKADE_YONGCHUAN_List_KEY, parkadeList);
             }else{
-                parkadeListOperationsOperations.leftPushAll(RedisConstants.PARKADE_KEY_banan, parkadeList);
+                parkadeListOperationsOperations.rightPushAll(RedisConstants.PARKADE_BANAN_List_KEY, parkadeList);
             }
-            redisTemplate.expire(RedisConstants.PARKADE_KEY_yongchuan, 1L, TimeUnit.DAYS);
-            redisTemplate.expire(RedisConstants.PARKADE_KEY_banan, 1L, TimeUnit.DAYS);
+            redisTemplate.expire(RedisConstants.PARKADE_YONGCHUAN_List_KEY, 1L, TimeUnit.DAYS);
+            redisTemplate.expire(RedisConstants.PARKADE_BANAN_List_KEY, 1L, TimeUnit.DAYS);
         }
 
         //如果有缓存
@@ -671,15 +679,18 @@ public class VehicleController {
     @GetMapping("/listCarImg")
     public R<List<VehicleCarImg>> listCarImg(@RequestParam("id") BigInteger id){
         log.info("/vehicle/listCarImg get -> id = {}; 单个车辆的图片列表查询", id);
+        if(id == null || id.equals(0)){
+            return R.error("查询图片id出错");
+        }
         List<VehicleCarImg> vehicleCarImgList;
         ListOperations<String, VehicleCarImg> vehicleCarImgValueOperations = (ListOperations<String, VehicleCarImg>) redisTemplate.opsForList();
-        vehicleCarImgList = vehicleCarImgValueOperations.range(RedisConstants.CAR_IMG_KEY + id, 0, -1);
+        vehicleCarImgList = vehicleCarImgValueOperations.range(RedisConstants.CAR_IMG_List_KEY + id, 0, -1);
         if(vehicleCarImgList.size() == 0){
             LambdaQueryWrapper<VehicleCarImg> lambdaQueryWrapper = new LambdaQueryWrapper<>();
             lambdaQueryWrapper.eq(VehicleCarImg::getVehicleCarId, id);
             vehicleCarImgList = vehicleCarImgService.list(lambdaQueryWrapper);
-            vehicleCarImgValueOperations.leftPushAll(RedisConstants.CAR_IMG_KEY + id, vehicleCarImgList);
-            redisTemplate.expire(RedisConstants.CAR_IMG_KEY + id, 1L, TimeUnit.DAYS);
+            vehicleCarImgValueOperations.rightPushAll(RedisConstants.CAR_IMG_List_KEY + id, vehicleCarImgList);
+            redisTemplate.expire(RedisConstants.CAR_IMG_List_KEY + id, 1L, TimeUnit.DAYS);
         }
         return R.success(vehicleCarImgList, "获取车辆图片数据");
     }
