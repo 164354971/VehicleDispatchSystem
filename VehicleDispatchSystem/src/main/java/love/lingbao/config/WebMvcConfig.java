@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import love.lingbao.common.JacksonObjectMapper;
 import love.lingbao.interceptor.MyInterceptor;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -12,11 +13,15 @@ import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport;
 
+import javax.annotation.Resource;
 import java.util.List;
 
 @Slf4j
 @Configuration
 public class WebMvcConfig extends WebMvcConfigurationSupport {
+
+    @Resource
+    private StringRedisTemplate stringRedisTemplate;
     /**
      * 设置静态资源映射
      * @param registry
@@ -52,7 +57,7 @@ public class WebMvcConfig extends WebMvcConfigurationSupport {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(new MyInterceptor())
+        registry.addInterceptor(new MyInterceptor(stringRedisTemplate))
                 .addPathPatterns("/**")
                 .excludePathPatterns("/login/**", "/image/**", "/vehicle/**","/mapper/**");
     }

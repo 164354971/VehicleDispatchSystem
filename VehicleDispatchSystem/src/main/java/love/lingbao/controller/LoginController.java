@@ -14,13 +14,16 @@ import love.lingbao.domain.dto.UserDto;
 import love.lingbao.domain.entity.Admin;
 import love.lingbao.domain.entity.ThirdAccount;
 import love.lingbao.domain.entity.User;
+import love.lingbao.domain.vo.AdminVo;
+import love.lingbao.domain.vo.UserVo;
 import love.lingbao.service.AdminService;
 import love.lingbao.service.ThirdAccountService;
 import love.lingbao.service.UserService;
-import love.lingbao.domain.vo.AdminVo;
-import love.lingbao.domain.vo.UserVo;
+import love.lingbao.utils.RedisConstants;
+import love.lingbao.utils.RegexUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
@@ -32,8 +35,8 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
-import java.util.Random;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Controller
@@ -47,7 +50,10 @@ public class LoginController {
     private HttpSession httpSession;
 
     @Autowired
-    private RedisTemplate redisTemplate;
+    private RedisTemplate<String, Object> redisTemplate;
+
+    @Autowired
+    private StringRedisTemplate stringRedisTemplate;
 
     @Autowired
     private UserService userService;
@@ -59,9 +65,48 @@ public class LoginController {
     private ThirdAccountService thirdAccountService;
 
     /**
+     * 手机号登录、注册
+     * @param phone 用户手机号
+     * @param code 手机验证码
+     * @return token
+     */
+    @Transactional(rollbackFor = Exception.class)
+    @GetMapping("/phoneLogin")
+    public R<String> phoneLogin(@RequestParam("phone") String phone, @RequestParam("code") String code) throws Exception {
+        log.info("/login/phoneLogin get -> phoneLogin: phone = {}, code = {}; 手机号登录", phone, code);
+        //1 判断手机号是否有误 phone
+        if(RegexUtils.isPhoneInvalid(phone)){
+            return R.error("手机号格式错误！");
+        }
+
+        //2 判断验证码是否有误 RedisConstants.LOGIN_CODE_KEY + phone
+        String cacheCode = stringRedisTemplate.opsForValue().get(RedisConstants.LOGIN_CODE_KEY + phone);
+        if(cacheCode == null || !cacheCode.equals(code)){
+            return R.error("验证码输入错误！");
+        }
+
+        //3 查找用户是否已存在
+        LambdaQueryWrapper<User> userLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        userLambdaQueryWrapper.eq(User::getPhone, phone);
+        User user = userService.getOne(userLambdaQueryWrapper);
+
+        //3.1 不存在，就先创建新用户
+        if(user == null){
+            //创建新用户 phone
+            user = userService.createUserWithPhone(phone);
+        }
+
+        //4 生成用户token,并设置有效期为7天
+        String token = userService.createToken(user);
+
+        //5 返回token作为用户凭证
+        return R.success(token);
+    }
+
+    /**
      * 第三方用户登录
      * @param thirdAccountDto 第三方登录用户信息体Dto
-     * @return
+     * @return userVo
      */
     @Transactional(rollbackFor = Exception.class)
     @PostMapping("/thirdAccountLogin")
@@ -77,7 +122,7 @@ public class LoginController {
             User user = userService.getById(thirdAccount.getUserId());
             if(user == null)
                 throw new Exception("第三方登录失败，请联系管理员");
-            //获取用户id保存到session
+
             httpSession.setAttribute("userId",user.getId());
             httpSession.setMaxInactiveInterval(24 * 60 * 60 * 7); //服务端保存一周
             log.info(httpSession.getId());
@@ -109,37 +154,12 @@ public class LoginController {
         }
         //3.2 生成新用户
         else{
-            //3.2.1 随机用户名
-            String randomUsername = UUID.randomUUID().toString().replaceAll("-", "");
-            //3.2.2 随机密码(32位)
-            Random random = new Random();
-            String alphabetsInUpperCase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-            String alphabetsInLowerCase = "abcdefghijklmnopqrstuvwxyz";
-            String numbers = "0123456789";
-            String allCharacters = alphabetsInLowerCase + alphabetsInUpperCase + numbers;
-            StringBuffer randomPasswordBuffer = new StringBuffer();
-            for (int i = 0; i < 32; i++) {
-                int randomIndex = random.nextInt(allCharacters.length());
-                randomPasswordBuffer.append(allCharacters.charAt(randomIndex));
-            }
-            String randomPassword = randomPasswordBuffer.toString();
-            //3.2.3 md5加密
-            randomPassword = DigestUtils.md5DigestAsHex(randomPassword.getBytes());
-
-            //3.2.4 保存用户
-            User user = new User();
-            user.setUsername(randomUsername);
-            user.setPassword(randomPassword);
-            if(thirdAccountDto.getSex().equals(1))
-                user.setGender("男");
-            else
-                user.setGender("女");
-            user.setImg(thirdAccountDto.getImg());
-            userService.save(user);
+            //3.2.4
+            User user = userService.createUserWithThird(thirdAccountDto.getSex(), thirdAccountDto.getImg());
 
             //3.2.5 获取用户ID
             LambdaQueryWrapper<User> userLambdaQueryWrapper = new LambdaQueryWrapper<>();
-            userLambdaQueryWrapper.eq(User::getUsername, randomUsername);
+            userLambdaQueryWrapper.eq(User::getUsername, user.getUsername());
             user = userService.getOne(userLambdaQueryWrapper);
 
             //3.2.5 保存用户ID
@@ -148,6 +168,8 @@ public class LoginController {
             //3.2.6 存储第三方用户数据
             thirdAccountService.save(thirdAccount);
 
+            //3.2.7 生成用户token
+            String token = UUID.randomUUID().toString().replaceAll("-", "");
             httpSession.setAttribute("userId",user.getId());
             httpSession.setMaxInactiveInterval(24 * 60 * 60 * 7); //服务端保存一周
             log.info(httpSession.getId());
@@ -159,7 +181,7 @@ public class LoginController {
     /**
      * 用户登录
      * @param userDto 登录用户信息体(带验证码）
-     * @return
+     * @return userVo
      */
     @PostMapping("/userLogin")
     public R<UserVo> userLogin(@RequestBody UserDto userDto){//http对象用来将登录成功的用户存入session里
@@ -416,17 +438,14 @@ public class LoginController {
     }
 
     /**
-     * 发送短信验证码
+     * 用户账号密码注册，发送短信验证码
      * @param phone 手机号码
      * @return
      */
-    @GetMapping("/sendMsg/{phone}")
-    public R<String> sendMsg(@PathVariable String phone) throws Exception {
+    @GetMapping("/userRegisterSendMsg/{phone}")
+    public R<String> userRegisterSendMsg(@PathVariable String phone) throws Exception {
         //response.setHeader("Access-Control-Allow-Origin", address);
-        if(phone.length() > 0 && phone.charAt(phone.length() - 1) == '='){
-            phone = phone.substring(0, phone.length() - 1);
-        }
-        log.info("/login/sendMsg get -> sendMsg: phone = {}; 发送短信验证码", phone);
+        log.info("/login/userRegisterSendMsg get -> sendMsg: phone = {}; 发送短信验证码", phone);
         //判断该注册用户的手机号是否存在
         LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(User::getPhone, phone);
@@ -438,7 +457,7 @@ public class LoginController {
         //生成6位数验证码
         String code = RandomCodeUtils.getSixValidationCode();
         //短信格式插入字符串数组，第一个是验证码，第二个是时长（分钟）
-        String[] params = {code, "3"};
+        String[] params = {code, "1"};
         //发送短信，获取发送的结果
         SmsSingleSenderResult result = SendMsg.sendMsgByTxPlatform(phone, params);
         //结果的结果码为1016，表示手机号的格式输入有误，返回
@@ -448,12 +467,41 @@ public class LoginController {
             throw new Exception("send phone validateCode is error" + result.errMsg);
         }
         //正确情况
-        else{
-            //存储该手机号的session,键为手机号，值为验证码，时长为1分钟
-            httpSession.setAttribute(phone, code);
-            httpSession.setMaxInactiveInterval(60);
-            System.out.println(httpSession.getAttribute(phone));
+        //存储该手机号的session,键为手机号，值为验证码，时长为1分钟
+        /*httpSession.setAttribute(phone, code);
+        httpSession.setMaxInactiveInterval(60);
+        System.out.println(httpSession.getAttribute(phone));*/
+        //将手机号和验证码存入redis
+        stringRedisTemplate.opsForValue().set(RedisConstants.LOGIN_CODE_KEY + phone, code, RedisConstants.LOGIN_CODE_TTL, TimeUnit.MINUTES);
+        return R.success("验证码已发送");
+    }
+
+    /**
+     * 用户手机号登录注册，发送短信验证码
+     * @param phone 手机号码
+     * @return
+     */
+    @GetMapping("/sendMsg/{phone}")
+    public R<String> sendMsg(@PathVariable String phone) throws Exception {
+        //response.setHeader("Access-Control-Allow-Origin", address);
+        log.info("/login/sendMsg get -> sendMsg: phone = {}; 发送短信验证码", phone);
+        if(RegexUtils.isPhoneInvalid(phone)){
+            return R.error("手机号格式错误！");
         }
+        //生成6位数验证码
+        String code = RandomCodeUtils.getSixValidationCode();
+        //短信格式插入字符串数组，第一个是验证码，第二个是时长（分钟）
+        String[] params = {code, "1"};
+        //发送短信，获取发送的结果
+        SmsSingleSenderResult result = SendMsg.sendMsgByTxPlatform(phone, params);
+        //结果的结果码为1016，表示手机号的格式输入有误，返回
+        if(result.result == 1016) return R.error("手机号格式错误!");
+            //其他错误，抛异常
+        else if(result.result != 0){
+            throw new Exception("send phone validateCode is error" + result.errMsg);
+        }
+        //将手机号和验证码存入redis
+        stringRedisTemplate.opsForValue().set(RedisConstants.LOGIN_CODE_KEY + phone, code, RedisConstants.LOGIN_CODE_TTL, TimeUnit.MINUTES);
         return R.success("验证码已发送");
     }
 

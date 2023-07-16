@@ -22,16 +22,11 @@ public class UserVo implements Serializable {
     private String phone;       //char(11)                            not null comment '手机号',
     private String name;        //varchar(10)                            not null comment '名字',
     private String nickname;        //varchar(10)                            not null comment '昵称',
-
     private String idNumber;        //varchar(18)                            not null comment '身份证号码',
-
     private String driverType;        //varchar(5)                            not null comment '驾照类型',
     private String gender;      //enum ('男', '女') default '男'      not null comment '性别'
-
     private BigDecimal salary;       //decimal(9,2) not null comment '账户余额'//
-
     private Integer vipLevel;       //tinyint not null comment '会员等级'//
-
     public UserVo(User user){
         this.id = user.getId();
         this.username = user.getUsername();

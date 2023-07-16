@@ -7,4 +7,9 @@ import love.lingbao.domain.entity.User;
 public interface UserService extends IService<User> {
 
     void saveUserDto(UserDto userDto);
+
+    User createUserWithPhone(String phone);
+    User createUserWithThird(Boolean sex, String img);
+
+    String createToken(User user);
 }

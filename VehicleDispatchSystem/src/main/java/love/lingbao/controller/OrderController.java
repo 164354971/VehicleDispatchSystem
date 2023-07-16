@@ -15,6 +15,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpSession;
+import java.math.BigInteger;
 
 @Slf4j
 @Controller
@@ -53,7 +54,7 @@ public class OrderController {
     @PostMapping("/createOrder")
     public R<VehicleOrder> createOrder(@RequestBody VehicleOrderDto vehicleOrderDto){
         log.info("/order/createOrder post -> vehicleOrderDto = {}; 生成车辆订单", vehicleOrderDto);
-
+        BigInteger order_no = (BigInteger) redisTemplate.opsForValue().get("lingbao:order:number");
         return R.error("订单生成失败");
     }
 

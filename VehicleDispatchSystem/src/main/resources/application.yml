@@ -56,7 +56,7 @@ logging:
 txsms:
   AppId: 1400818305 #你的系统默认应用SDK AppID
   AppKey: 6780714c3b3b5ce01ddcdd13645f9c20 #你的系统默认应用App Key
-  TemplateId: 1786561 #你的正文模板ID
+  TemplateId: 1865590 #你的正文模板ID
   signName: 玲宝的练习空间网  #你的签名内容
 
 lingbao:
