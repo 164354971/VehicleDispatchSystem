@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @RestController
@@ -653,6 +654,8 @@ public class VehicleController {
             }else{
                 parkadeListOperationsOperations.leftPushAll(RedisConstants.PARKADE_KEY_banan, parkadeList);
             }
+            redisTemplate.expire(RedisConstants.PARKADE_KEY_yongchuan, 1L, TimeUnit.DAYS);
+            redisTemplate.expire(RedisConstants.PARKADE_KEY_banan, 1L, TimeUnit.DAYS);
         }
 
         //如果有缓存
@@ -676,6 +679,7 @@ public class VehicleController {
             lambdaQueryWrapper.eq(VehicleCarImg::getVehicleCarId, id);
             vehicleCarImgList = vehicleCarImgService.list(lambdaQueryWrapper);
             vehicleCarImgValueOperations.leftPushAll(RedisConstants.CAR_IMG_KEY + id, vehicleCarImgList);
+            redisTemplate.expire(RedisConstants.CAR_IMG_KEY + id, 1L, TimeUnit.DAYS);
         }
         return R.success(vehicleCarImgList, "获取车辆图片数据");
     }
