@@ -357,7 +357,6 @@
 			},
 			listParkade(item = null){
 				var that = this;
-				
 				uni.request({
 					url: this.baseURL + '/vehicle/listParkade?area=' + this.area,
 					withCredentials:true,
@@ -367,7 +366,9 @@
 					method:'GET',
 					success(res) {
 						that.location();
+						console.log("res.data", res.data)
 						that.parkadeList = res.data.data;
+						console.log("that.parkadeList", that.parkadeList)
 						let len = that.parkadeList.length;
 						if(len == 0){
 							that.loading = false;
@@ -384,7 +385,7 @@
 							
 						}else{
 							for(let i = 0; i < len; i++){
-								console.log(that.parkadeList[i])
+								console.log(i, that.parkadeList[i])
 								let latitude = parseFloat(that.parkadeList[i].latitude);
 								let longitude = parseFloat(that.parkadeList[i].longitude);
 								that.parkadeList[i].distance = that.distance(latitude, longitude);

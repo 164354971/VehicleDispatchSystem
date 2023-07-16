@@ -10,15 +10,18 @@ import love.lingbao.domain.entity.Evaluate;
 import love.lingbao.domain.entity.Parkade;
 import love.lingbao.domain.entity.User;
 import love.lingbao.domain.entity.vehicle.*;
+import love.lingbao.domain.vo.HotCarVo;
+import love.lingbao.domain.vo.vehicle.VehicleBrandVo;
 import love.lingbao.service.AdminService;
 import love.lingbao.service.EvaluateService;
 import love.lingbao.service.ParkadeService;
 import love.lingbao.service.UserService;
 import love.lingbao.service.vehicle.*;
-import love.lingbao.domain.vo.HotCarVo;
-import love.lingbao.domain.vo.vehicle.VehicleBrandVo;
+import love.lingbao.utils.RedisConstants;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.ListOperations;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -40,7 +43,10 @@ public class VehicleController {
     private HttpSession httpSession;
 
     @Autowired
-    private RedisTemplate redisTemplate;
+    private RedisTemplate<String, ? extends Object> redisTemplate;
+
+    @Autowired
+    private StringRedisTemplate stringRedisTemplate;
 
     @Autowired
     private UserService userService;
@@ -628,10 +634,30 @@ public class VehicleController {
     @GetMapping("/listParkade")
     public R<List<Parkade>> listParkade(@RequestParam("area") String area){
         log.info("/vehicle/listParkade get -> area = {}; 停车场列表查询", area);
-        LambdaQueryWrapper<Parkade> lqw = new LambdaQueryWrapper<>();
-        lqw.eq(StringUtils.hasLength(area), Parkade::getAreaSchool, area);
-        List<Parkade> list = parkadeService.list(lqw);
-        return R.success(list);
+
+        List<Parkade> parkadeList;
+        ListOperations<String, Parkade> parkadeListOperationsOperations = (ListOperations<String, Parkade>)redisTemplate.opsForList();
+        if(area.equals("永川")){
+            parkadeList = parkadeListOperationsOperations.range(RedisConstants.PARKADE_KEY_yongchuan, 0, -1);
+        }else{
+            parkadeList = parkadeListOperationsOperations.range(RedisConstants.PARKADE_KEY_banan, 0, -1);
+        }
+
+        //如果没有缓存，则访问数据库
+        if(parkadeList.size() == 0){
+            LambdaQueryWrapper<Parkade> lqw = new LambdaQueryWrapper<>();
+            lqw.eq(StringUtils.hasLength(area), Parkade::getAreaSchool, area);
+            parkadeList = parkadeService.list(lqw);
+            if(area.equals("永川")){
+                parkadeListOperationsOperations.leftPushAll(RedisConstants.PARKADE_KEY_yongchuan, parkadeList);
+            }else{
+                parkadeListOperationsOperations.leftPushAll(RedisConstants.PARKADE_KEY_banan, parkadeList);
+            }
+        }
+
+        //如果有缓存
+        log.info(parkadeList.toString());
+        return R.success(parkadeList);
     }
 
     /**
@@ -642,9 +668,15 @@ public class VehicleController {
     @GetMapping("/listCarImg")
     public R<List<VehicleCarImg>> listCarImg(@RequestParam("id") BigInteger id){
         log.info("/vehicle/listCarImg get -> id = {}; 单个车辆的图片列表查询", id);
-        LambdaQueryWrapper<VehicleCarImg> lambdaQueryWrapper = new LambdaQueryWrapper<>();
-        lambdaQueryWrapper.eq(VehicleCarImg::getVehicleCarId, id);
-        List<VehicleCarImg> vehicleCarImgList = vehicleCarImgService.list(lambdaQueryWrapper);
+        List<VehicleCarImg> vehicleCarImgList;
+        ListOperations<String, VehicleCarImg> vehicleCarImgValueOperations = (ListOperations<String, VehicleCarImg>) redisTemplate.opsForList();
+        vehicleCarImgList = vehicleCarImgValueOperations.range(RedisConstants.CAR_IMG_KEY + id, 0, -1);
+        if(vehicleCarImgList.size() == 0){
+            LambdaQueryWrapper<VehicleCarImg> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+            lambdaQueryWrapper.eq(VehicleCarImg::getVehicleCarId, id);
+            vehicleCarImgList = vehicleCarImgService.list(lambdaQueryWrapper);
+            vehicleCarImgValueOperations.leftPushAll(RedisConstants.CAR_IMG_KEY + id, vehicleCarImgList);
+        }
         return R.success(vehicleCarImgList, "获取车辆图片数据");
     }
 
