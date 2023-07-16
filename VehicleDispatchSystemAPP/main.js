@@ -38,6 +38,11 @@ Vue.prototype.isUserLogin = async function (){
 		xhrFields: {
 			withCredentials: true
 		},
+		header: {
+			// 'Content-Type': 'application/x-www-form-urlencoded'
+			 'Content-Type': 'application/json' ,//自定义请求头信息
+			 //Authorization: uni.getStorageSync('token')
+		},
 		method: 'GET', //请求方式，必须为大写
 		success: (res) => {
 			console.log('/login/isUserLogin', res.data);

@@ -78,7 +78,8 @@
 					url: this.baseURL + "/login/kaptcha",
 					header: {
 						// 'Content-Type': 'application/x-www-form-urlencoded'
-						 'Content-Type': 'application/json' //自定义请求头信息
+						 'Content-Type': 'application/json' ,//自定义请求头信息
+						 
 					},
 					withCredentials:true,
 					xhrFields: {
@@ -144,7 +145,7 @@
 						data: this.user,
 						header: {
 							// 'Content-Type': 'application/x-www-form-urlencoded'
-							 'Content-Type': 'application/json' //自定义请求头信息
+							 'Content-Type': 'application/json' ,//自定义请求头信息
 						},
 						withCredentials:true,
 						xhrFields: {
@@ -163,6 +164,7 @@
 								uni.setStorageSync("user",that.user)
 								uni.setStorageSync("userInfo",that.userInfo)
 								uni.setStorageSync("activeRadio",that.activeRadio)
+								//uni.setStorageSync("token", res.data.data)
 								// 1. 获取当前页面栈实例（此时最后一个元素为当前页）
 								let pages = getCurrentPages() 
 								 

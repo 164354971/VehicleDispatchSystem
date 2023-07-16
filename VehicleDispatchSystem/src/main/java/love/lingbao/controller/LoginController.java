@@ -35,7 +35,6 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -97,7 +96,7 @@ public class LoginController {
         }
 
         //4 生成用户token,并设置有效期为7天
-        String token = userService.createToken(user);
+        String token = userService.createTokenSevenDays(user);
 
         //5 返回token作为用户凭证
         return R.success(token);
@@ -106,11 +105,11 @@ public class LoginController {
     /**
      * 第三方用户登录
      * @param thirdAccountDto 第三方登录用户信息体Dto
-     * @return userVo
+     * @return token
      */
     @Transactional(rollbackFor = Exception.class)
     @PostMapping("/thirdAccountLogin")
-    public R<UserVo> thirdAccountLogin(@RequestBody ThirdAccountDto thirdAccountDto) throws Exception {
+    public R<String> thirdAccountLogin(@RequestBody ThirdAccountDto thirdAccountDto) throws Exception {
         log.info("/login/thirdAccountLogin post -> thirdAccountLogin: thirdAccountDto = {}; 第三方登录用户信息体Dto", thirdAccountDto.toString());
         //1 先查找第三方用户是否有绑定账户
         LambdaQueryWrapper<ThirdAccount> thirdAccountLambdaQueryWrapper = new LambdaQueryWrapper<>();
@@ -123,69 +122,47 @@ public class LoginController {
             if(user == null)
                 throw new Exception("第三方登录失败，请联系管理员");
 
-            httpSession.setAttribute("userId",user.getId());
-            httpSession.setMaxInactiveInterval(24 * 60 * 60 * 7); //服务端保存一周
-            log.info(httpSession.getId());
-            UserVo userVo = new UserVo(user);
-            return R.success(userVo, "登录成功！");
+            //4 生成用户token,并设置有效期为7天
+            String token = userService.createTokenSevenDays(user);
+
+            return R.success(token, "登录成功！");
         }
 
-        //3 如果没有查找到绑定用户，则先查找当前是否有登录用户，若有则添加绑定，无则新建用户，再绑定
+        //3 如果没有查找到绑定用户，则新建用户，再与第三方账号绑定
         thirdAccount = new ThirdAccount();
 
         thirdAccount.setThirdUniqueAccount(thirdAccountDto.getThirdUniqueAccount());
         thirdAccount.setType(thirdAccountDto.getType());
         thirdAccount.setBindFlag(true);
 
-        //3.1 判断当前是否有登录用户
-        Object objId = httpSession.getAttribute("user");
+        //3.1.1 创建新用户
+        User user = userService.createUserWithThird(thirdAccountDto.getSex(), thirdAccountDto.getImg());
 
-        if(objId != null){
-            //3.1.1 如果当前有登录用户，则直接绑定
-            BigInteger id = (BigInteger) objId;
-            //3.1.2 获取登录用户
-            User user = userService.getById(id);
-            UserVo userVo = new UserVo(user);
-            //3.1.3 保存用户ID到第三方
-            thirdAccount.setUserId(id);
-            thirdAccountService.save(thirdAccount);
+        //3.1.2 获取用户ID
+        LambdaQueryWrapper<User> userLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        userLambdaQueryWrapper.eq(User::getUsername, user.getUsername());
+        user = userService.getOne(userLambdaQueryWrapper);
 
-            return R.success(userVo, "登录成功！");
-        }
-        //3.2 生成新用户
-        else{
-            //3.2.4
-            User user = userService.createUserWithThird(thirdAccountDto.getSex(), thirdAccountDto.getImg());
+        //3.1.3 第三方用户存储本地用户ID
+        thirdAccount.setUserId(user.getId());
 
-            //3.2.5 获取用户ID
-            LambdaQueryWrapper<User> userLambdaQueryWrapper = new LambdaQueryWrapper<>();
-            userLambdaQueryWrapper.eq(User::getUsername, user.getUsername());
-            user = userService.getOne(userLambdaQueryWrapper);
+        //3.1.4 存储第三方用户数据
+        thirdAccountService.save(thirdAccount);
 
-            //3.2.5 保存用户ID
-            thirdAccount.setUserId(user.getId());
+        //3.1.5 生成用户token
+        String token = userService.createTokenSevenDays(user);
 
-            //3.2.6 存储第三方用户数据
-            thirdAccountService.save(thirdAccount);
-
-            //3.2.7 生成用户token
-            String token = UUID.randomUUID().toString().replaceAll("-", "");
-            httpSession.setAttribute("userId",user.getId());
-            httpSession.setMaxInactiveInterval(24 * 60 * 60 * 7); //服务端保存一周
-            log.info(httpSession.getId());
-            UserVo userVo = new UserVo(user);
-            return R.success(userVo, "登录成功！");
-        }
+        return R.success(token, "登录成功！");
     }
 
     /**
-     * 用户登录
+     * 本地用户登录
      * @param userDto 登录用户信息体(带验证码）
-     * @return userVo
+     * @return token
      */
     @PostMapping("/userLogin")
-    public R<UserVo> userLogin(@RequestBody UserDto userDto){//http对象用来将登录成功的用户存入session里
-        log.info("/login/userLogin post -> userLogin: userDto = {}; 用户登录", userDto.toString());
+    public R<String> userLogin(@RequestBody UserDto userDto){
+        log.info("/login/userLogin post -> userLogin: userDto = {}; 本地用户登录", userDto.toString());
         String code = userDto.getCode();
         //0.判断验证码
         R<String> info = verify(code);
@@ -233,11 +210,8 @@ public class LoginController {
         redisTemplate.opsForHash().put("userId_sessionId", u.getId(), httpSession.getId());*/
 
         //5、登录成功，将用户id存入Session并返回登录成功结果
-        httpSession.setAttribute("userId",user.getId());
-        httpSession.setMaxInactiveInterval(24 * 60 * 60 * 7); //服务端保存一周
-        log.info(httpSession.getId());
-        UserVo userVo = new UserVo(user);
-        return R.success(userVo, "登录成功！");
+        String token = userService.createTokenSevenDays(user);
+        return R.success(token, "登录成功！");
     }
 
     /**

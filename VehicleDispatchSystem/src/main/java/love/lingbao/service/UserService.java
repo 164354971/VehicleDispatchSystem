@@ -11,5 +11,5 @@ public interface UserService extends IService<User> {
     User createUserWithPhone(String phone);
     User createUserWithThird(Boolean sex, String img);
 
-    String createToken(User user);
+    String createTokenSevenDays(User user);
 }

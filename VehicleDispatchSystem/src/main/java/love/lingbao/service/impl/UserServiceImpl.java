@@ -1,6 +1,7 @@
 package love.lingbao.service.impl;
 
-import com.baomidou.mybatisplus.core.toolkit.BeanUtils;
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.bean.copier.CopyOptions;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import love.lingbao.domain.dto.UserDto;
 import love.lingbao.domain.entity.User;
@@ -13,10 +14,10 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 @Service
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService{
@@ -50,7 +51,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         String alphabetsInLowerCase = "abcdefghijklmnopqrstuvwxyz";
         String numbers = "0123456789";
         String allCharacters = alphabetsInLowerCase + alphabetsInUpperCase + numbers;
-        StringBuffer randomPasswordBuffer = new StringBuffer();
+        StringBuilder randomPasswordBuffer = new StringBuilder();
         for (int i = 0; i < 32; i++) {
             int randomIndex = random.nextInt(allCharacters.length());
             randomPasswordBuffer.append(allCharacters.charAt(randomIndex));
@@ -75,7 +76,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         String alphabetsInLowerCase = "abcdefghijklmnopqrstuvwxyz";
         String numbers = "0123456789";
         String allCharacters = alphabetsInLowerCase + alphabetsInUpperCase + numbers;
-        StringBuffer randomPasswordBuffer = new StringBuffer();
+        StringBuilder randomPasswordBuffer = new StringBuilder();
         for (int i = 0; i < 32; i++) {
             int randomIndex = random.nextInt(allCharacters.length());
             randomPasswordBuffer.append(allCharacters.charAt(randomIndex));
@@ -97,13 +98,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
-    public String createToken(User user) {
+    public String createTokenSevenDays(User user) {
         //1 生成用户token
         String token = UUID.randomUUID().toString().replaceAll("-", "");
         //2 将user转为VO
         UserVo userVo = new UserVo(user);
         //3 将userVo转为HashMap
-        Map<String, Object> userMap = BeanUtils.beanToMap(userVo);
+        Map<String, Object> userMap = BeanUtil.beanToMap(userVo, new HashMap<>(), CopyOptions.create()
+                        .setIgnoreNullValue(true)
+                        .setFieldValueEditor((fieldName, fieldValue) -> fieldValue.toString()));
         //4 redis存储用户键值对 key:RedisConstants.LOGIN_USER_KEY + token value: userMap
         stringRedisTemplate.opsForHash().putAll(RedisConstants.LOGIN_USER_KEY + token, userMap);
 

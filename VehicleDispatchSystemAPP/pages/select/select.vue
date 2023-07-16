@@ -260,15 +260,7 @@
 			this.day = uni.getStorageSync("day");
 			this.area = uni.getStorageSync("area");
 			this.timestampNow = this.startTime.timestamp;
-			
-			/* setInterval(()=>{
-				this.location(); 
-			}, 1000) */
-			this.location();
-			setTimeout(()=>{
-				this.listParkade();  
-			}, 1000);
-			
+			this.listParkade();  
 		},
 		methods: {
 			location() {
@@ -383,6 +375,7 @@
 							},2000);
 							
 						}else{
+							that.location();
 							for(let i = 0; i < len; i++){
 								console.log(that.parkadeList[i])
 								let latitude = parseFloat(that.parkadeList[i].latitude);
