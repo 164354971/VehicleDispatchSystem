@@ -34,8 +34,8 @@
 			</view>
 		</view>
 		<view class="swiper-frame" v-if="idx >= 0">
-			<u-swiper class="swiper" :list="carImgList" keyName="img" indicator indicatorMode="line" height="250"
-				interval="5000" circular @change="changeSwiper" previousMargin="150" nextMargin="150"></u-swiper>
+			<u-swiper class="swiper" :list="carImgList" keyName="img" indicator indicatorMode="line" height="330"
+				interval="5000" circular @change="changeSwiper" previousMargin="155" nextMargin="155"></u-swiper>
 
 		</view>
 		<view v-else>
@@ -164,7 +164,7 @@
 				<span class="button-buy " @click="nowOrder()">立即下单</span>
 			</view>
 		</view>
-		<payPopup :noPay="noPay" :user="user" :order="order" @getNoPay="getNoPay"></payPopup>
+		<payPopup :noPay="noPay" :user="user" :order="order" :coupon="coupon" @getNoPay="getNoPay"></payPopup>
 	</view>
 </template>
 
@@ -175,7 +175,6 @@
 			return {
 				user: {}, //用户数据
 				couponList: [], //用户的所有优惠券
-				discountList: [], //用户的所有折扣券
 				area: '', //地区
 				day: 0, //租几天
 				startTime: {}, //开始租车时间
@@ -194,7 +193,7 @@
 				noPay: false,		//true弹出支付框
 				order:{
 					
-				}
+				},
 			}
 		},
 		components:{
@@ -215,21 +214,54 @@
 				this.startTime = uni.getStorageSync("startTime");
 				this.endTime = uni.getStorageSync("endTime");
 				//获取用户数据
-				await this.isUserLogin()
-				this.user = uni.getStorageSync("user");
-				if(!this.isValue(this.user)){//用户未登录
-					setTimeout(() => {
-						uni.navigateTo({
-							url:'/pages/login/login_index'
-						})
-					}, 2000)
-				}else{
-					//获取优惠券和折扣券
-					console.log(this.user)
-					this.getCouponList()
-					this.getCarImg();
+				let user = uni.getStorageSync("user");
+				console.log(user);
+				if(!this.isValue(user)){
+					user = {};
+					user.id = 0;
 				}
+				await uni.request({
+					url: this.baseURL + "/login/isUserLogin?id=" + user.id,
+					withCredentials: true,
+					xhrFields: {
+						withCredentials: true
+					},
+					method: 'GET', //请求方式，必须为大写
+					success: (res) => {
+						console.log('/login/isUserLogin', res.data);
+						
+						if (res.data.code == 1) {
+							user = res.data.data;
+							console.log("user.salary", user.salary)
+							uni.setStorageSync("user", user)
+							uni.setStorageSync("activeRadio", "用户");
+							that.user = uni.getStorageSync("user");
+							console.log("that.user.salary", that.user.salary)
+							that.getCouponList()
+							that.getCarImg();
+						} else {
+							uni.showToast({
+								title: '用户未登录，即将跳转登录页',
+								icon: 'none',
+								duration: 2000
+							});
+							uni.removeStorageSync("user")
+							setTimeout(() => {
+								uni.navigateTo({
+									url:'/pages/login/login_index'
+								})
+							}, 2000)
+						}
+					},
+					complete() {
+					}
+				})
+				
+				
+				
+				
 			},
+			
 			getDate() {
 				const date = new Date();
 				//timestamp = +new Date(Number(date));
@@ -354,11 +386,11 @@
 					totalAmount: totalAmount,
 					deposit: this.car.deposit,
 					paymentAmount: paymentAmount,
-					startTime: this.startTime,
-					endTime: this.endTime,
+					startTime: this.startTime.formatDateTime,
+					endTime: this.endTime.formatDateTime,
 				}
 				
-				uni.$emit('orderObligation', data);
+				
 				this.noPay = true;
 			},
 			getNoPay(e){

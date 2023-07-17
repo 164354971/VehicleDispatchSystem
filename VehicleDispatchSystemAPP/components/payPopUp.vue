@@ -23,19 +23,21 @@
 						<image class="fr" src="../static/common/dui_3.png" v-show="item.id == payment.id"></image>
 					</view>
 				</view>
-				<view class="button" @click="pay">
+				<view class="button" @click="confirm">
 					立即支付
 				</view>
 			</view>
 		</u-popup>
-		
+		<u-modal showCancelButton :show="payConfirm" @confirm="payTrue" @cancel="payFalse" 
+				confirmText="确认支付" cancelText="我再想想"
+				ref="uModal" :title="title" :content='content'></u-modal>
 	</view>
 </template>
 
 <script>
 	export default {
 		name: "payPopUp",
-		props: ['noPay', 'user', 'order'],
+		props: ['noPay', 'user', 'coupon', 'order'],
 		data() {
 			return {
 				radio: true,
@@ -70,30 +72,51 @@
 						type:4,
 						img:'../../static/common/bank_card.png'
 					},
-				]
+				],
+				payConfirm: false,
+				title:"支付确认",
+				content:''
 			}
 		},
 		methods: {
-			pay(){
-				let that = this;
-				//余额支付
-				if(this.payment.type == 1){
-					//余额足够支付
-					if(this.user.salary >= this.order.paymentAmount){
-						uni.request({
-							url: that.baseURL + '/order/createOrder',
-							data: this.order,
-							withCredentials:true,
-							xhrFields: {
-								withCredentials: true
-							},
-							method: 'POST',
-							success(res) {
-								console.log(res);
-							}
-						})
-					}
+			confirm(){
+				if(this.payment.id == 1 && this.user.salary < this.order.paymentAmount){
+					uni.showToast({
+						icon:'none',
+						title:'余额不足',
+					}, 1500);
+					return;
 				}
+				this.content = "确认支付金额：" + this.order.paymentAmount + " 元吗？";
+				this.payConfirm = true;
+			},
+			payTrue(){
+				let that = this;
+				this.order.payChannel = this.payment.id;
+				this.order.couponUserId = this.coupon.id;
+				uni.request({
+					url: that.baseURL + '/order/createOrder',
+					data: this.order,
+					withCredentials:true,
+					xhrFields: {
+						withCredentials: true
+					},
+					method: 'POST',
+					success(res) {
+						console.log(res);
+						that.order = res.data.data
+						if(that.order.status == 0){
+							uni.$emit('orderObligation', that.order);
+						}else if(that.order.status == 1){
+							uni.$emit('orderInProgress', that.order);
+						}
+						that.payConfirm = false;
+					}
+				})
+			},
+			payFalse(){
+				let that = this;
+				
 			},
 			changePayment(item){
 				this.payment = item; 

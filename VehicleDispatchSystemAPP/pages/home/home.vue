@@ -23,8 +23,8 @@
 			<view class="body">
 				<view class="body-item" v-for="(item, idx) in orderTypes">
 					<image :src="item.img"></image>
-					<view :class="{'red-dot' : redDot, 'grey-dot' : !redDot}" v-show="idx == 0 && orderObligation.num > 0">{{orderObligation.num}}</view>
-					<view :class="{'red-dot' : redDot, 'grey-dot' : !redDot}" v-show="idx == 1 && orderInProgress.num > 0">{{orderInProgress.num}}</view>
+					<view :class="{'red-dot' : redDot, 'grey-dot' : !redDot}" v-show="idx == 0 && orderObligationNum > 0">{{orderObligationNum}}</view>
+					<view :class="{'red-dot' : redDot, 'grey-dot' : !redDot}" v-show="idx == 1 && orderInProgressNum > 0">{{orderInProgressNum}}</view>
 					<!-- <view :class="{'red-dot' : redDot, 'grey-dot' : !redDot}" v-show="idx == 2 && orderComplete.num > 0">{{orderComplete.num}}</view>
 					<view :class="{'red-dot' : redDot, 'grey-dot' : !redDot}" v-show="idx == 3 && orderCancel.num > 0">{{orderCancel.num}}</view> -->
 					<br>
@@ -90,22 +90,10 @@
 				content:'是否退出登录？',
 				backLogin: false,
 				login:false,
-				orderObligation:{
-					num: 0,
-					list: [],
-				}, 
-				orderInProgress:{
-					num: 0,
-					list: [],
-				},
-				orderComplete:{
-					num: 0,
-					list: [],
-				},
-				orderCancel:{
-					num: 0,
-					list: [],
-				},
+				orderObligationNum:0,
+				orderInProgressNum:0,
+				orderCompleteNum:0,
+				orderCancelNum:0,
 			};
         },
 		components:{
@@ -113,25 +101,25 @@
 		},
         onShow() {
 			this.isLogin()
-			uni.$on('orderObligation', (e)=>{
-				console.log(e)
-				this.orderObligation.list.push(e);
-				this.orderObligation.num ++;
-			});
+			this.getData()
 		},
         onLoad() {
 			this.isLogin()
+			this.getData()
 		},
         methods: {
 			isLogin(){
 				this.user = uni.getStorageSync("user");
-				console.log('打印相关信息', this.user);
-				
+				console.log('getUser', this.user);
 				if(JSON.stringify(this.user)=="{}" || this.user.username == ''|| this.user.username == undefined){
 					this.text = '登录'
 				}else{
+					this.orderInProgressNum = 0;
 					this.text = '退出登录'
 				}
+			},
+			getData(){
+				this.getOrderInProgressNum()
 			},
 			gePreValue(e){
 				this.getLogin(e.login);
@@ -145,6 +133,7 @@
 				if(JSON.stringify(this.user)=="{}" || this.user.username == ''|| this.user.username == undefined){
 					this.text = '登录'
 				}else{
+					this.getOrderInProgressNum()
 					this.text = '退出登录'
 				}
 			},
@@ -167,6 +156,7 @@
 						if(res.data.code == 1){
 							uni.removeStorageSync("user");
 							that.user = uni.getStorageSync("user");
+							this.orderInProgressNum = 0;
 							that.text = '登录'
 							that.backLogin = false
 						}else{
@@ -188,7 +178,22 @@
 				}, 1000)
 				
 			},
-			
+			getOrderInProgressNum(){
+				let that = this;
+				uni.request({
+					url:this.baseURL + "/order/getOrderInProgressNum?id=" + this.user.id,
+					withCredentials: true,
+					xhrFields: {
+						withCredentials: true
+					},
+					method: 'GET', //请求方式，必须为大写
+					success(res) {
+						if(res.data.code == 1){
+							that.orderInProgressNum = res.data.data;
+						}
+					}
+				})
+			}
 		},
 
     };

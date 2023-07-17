@@ -1,8 +1,15 @@
 package love.lingbao.domain.entity.vehicle;
 
+import com.baomidou.mybatisplus.annotation.FieldFill;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import love.lingbao.domain.dto.vehicle.VehicleOrderDto;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -24,8 +31,30 @@ public class VehicleOrder implements Serializable {
     private LocalDateTime paymentTime;//datetime                                null comment '订单支付时间',
     private Integer payChannel;//tinyint       default 0                 not null comment '支付渠道1余额2微信3支付宝4银行卡',
     private Integer status;//tinyint       default 0                 not null comment '0未付款,1已付款,2进行中,3已完成,4退车申请,5退车中,6已退车,7取消交易',
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime startTime;//datetime      default CURRENT_TIMESTAMP not null comment '租车开始时间',
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime endTime;//datetime      default CURRENT_TIMESTAMP not null comment '租车结束时间',
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
+    @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createTime;//datetime      default CURRENT_TIMESTAMP not null comment '订单创建时间',
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
+    @TableField(fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updateTime;//datetime      default CURRENT_TIMESTAMP not null comment '订单更新时间',
+
+    public VehicleOrder(VehicleOrderDto one){
+        id = one.getId();
+        userId = one.getUserId();
+        vehicleCarId = one.getVehicleCarId();
+        totalAmount = one.getTotalAmount();
+        deposit = one.getDeposit();
+        paymentAmount = one.getPaymentAmount();
+        payChannel = one.getPayChannel();
+        startTime = one.getStartTime();
+        endTime = one.getEndTime();
+    }
 }

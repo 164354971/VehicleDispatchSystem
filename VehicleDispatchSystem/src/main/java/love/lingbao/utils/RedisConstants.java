@@ -18,7 +18,9 @@ public class RedisConstants {
     public static final String PARKADE_BANAN_List_KEY = "vehicle:parkade:banan:list";
     public static final String CAR_IMG_List_KEY = "vehicle:car:img:list:";
     public static final String Brand_List_KEY = "vehicle:brand:list:";
-    public static final String FEED_KEY = "feed:";
-    public static final String SHOP_GEO_KEY = "shop:geo:";
-    public static final String USER_SIGN_KEY = "sign:";
+    public static final String ORDER_KEY = "vehicle:order:";
+    public static final String ORDER_NUMBER_KEY = "vehicle:order:no";
+    public static final String USER_KEY = "vehicle:user:";
+    public static final String COUPON_USER_KEY = "vehicle:user_coupon:";
+
 }

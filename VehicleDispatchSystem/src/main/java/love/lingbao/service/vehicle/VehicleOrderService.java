@@ -1,6 +1,7 @@
 package love.lingbao.service.vehicle;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import love.lingbao.domain.entity.User;
 import love.lingbao.domain.entity.vehicle.VehicleOrder;
 import org.apache.ibatis.annotations.Param;
 
@@ -16,4 +17,8 @@ public interface VehicleOrderService extends IService<VehicleOrder> {
      */
     public List<VehicleOrder> findTimeFrameVehicleCarIdList(@Param("startTime") LocalDateTime startTime, @Param("endTime") LocalDateTime endTime);
 
+    Boolean salaryPay(User user, VehicleOrder vehicleOrder);
+    Boolean weChatPay(User user, VehicleOrder vehicleOrder);
+    Boolean alipay(User user, VehicleOrder vehicleOrder);
+    Boolean bankcardPay(User user, VehicleOrder vehicleOrder);
 }

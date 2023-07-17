@@ -44,6 +44,7 @@ Vue.prototype.isUserLogin = async function (){
 			
 			if (res.data.code == 1) {
 				user = res.data.data;
+				console.log("user.salary", user.salary)
 				uni.setStorageSync("user", user)
 				uni.setStorageSync("activeRadio", "用户");
 			} else {

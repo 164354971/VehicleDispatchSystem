@@ -38,7 +38,9 @@
 		},
 		methods: {
 			gePreValue(e){
+				
 				if(this.isValue(e.user)){
+					console.log(e)
 					uni.navigateBack({
 						delta: 1
 					})

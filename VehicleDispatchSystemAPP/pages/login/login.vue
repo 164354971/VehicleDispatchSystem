@@ -176,13 +176,14 @@
 								uni.showToast({
 									title: '登录成功！页面即将跳转...',
 									icon:'none',
-									duration: 1000
+									duration: 2000
 								});
 								setTimeout(() => {
 									
 									uni.navigateBack({
 										delta: 1,
 									});
+									
 								}, 2000)
 								
 								

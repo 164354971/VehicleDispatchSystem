@@ -202,8 +202,10 @@
 				console.log(this.area)
 				if(this.area == '永川'){
 					recommend = this.recommend1;
-				}else{
+				}else if(this.area == '巴南'){
 					recommend = this.recommend2;
+				}else{
+					return;
 				}
 				
 				uni.request({

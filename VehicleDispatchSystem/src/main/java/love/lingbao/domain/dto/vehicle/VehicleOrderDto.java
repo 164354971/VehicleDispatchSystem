@@ -21,7 +21,8 @@ public class VehicleOrderDto implements Serializable {
     private BigDecimal deposit;//decimal(9, 2) default 0.00              not null comment '押金',
     private BigDecimal paymentAmount;//decimal(9, 2) default 0.00              not null comment '订单实付金额',
     private Integer payChannel;//tinyint       default 0                 not null comment '支付渠道1余额2微信3支付宝4银行卡',
-    private Integer status;//tinyint       default 0                 not null comment '0未付款,1已付款,2进行中,3已完成,4退车申请,5退车中,6已退车,7取消交易',
     private LocalDateTime startTime;//datetime      default CURRENT_TIMESTAMP not null comment '租车开始时间',
     private LocalDateTime endTime;//datetime      default CURRENT_TIMESTAMP not null comment '租车结束时间',
+
+    private BigInteger couponUserId; //用户使用的优惠券id
 }

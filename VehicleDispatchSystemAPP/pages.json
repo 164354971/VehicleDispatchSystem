@@ -133,7 +133,7 @@
             
         }
         ,{
-            "path" : "pages/details/order_details",
+            "path" : "pages/details/details_order",
             "style" :                                                                                    
             {
                 "navigationBarTitleText": "",

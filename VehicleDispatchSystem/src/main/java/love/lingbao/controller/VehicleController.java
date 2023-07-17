@@ -441,9 +441,10 @@ public class VehicleController {
                 System.out.println(entry.getKey());
                 System.out.println(entry.getValue());
             }
-
-            vehicleBrandVoListOperations.rightPushAll(RedisConstants.Brand_List_KEY + name, vehicleBrandVoList);
-            redisTemplate.expire(RedisConstants.Brand_List_KEY + name, 1L, TimeUnit.DAYS);
+            if(vehicleBrandVoList.size() != 0){
+                vehicleBrandVoListOperations.rightPushAll(RedisConstants.Brand_List_KEY + name, vehicleBrandVoList);
+                redisTemplate.expire(RedisConstants.Brand_List_KEY + name, 1L, TimeUnit.DAYS);
+            }
         }
         return R.success(vehicleBrandVoList);
     }
@@ -657,13 +658,15 @@ public class VehicleController {
             LambdaQueryWrapper<Parkade> lqw = new LambdaQueryWrapper<>();
             lqw.eq(StringUtils.hasLength(area), Parkade::getAreaSchool, area);
             parkadeList = parkadeService.list(lqw);
-            if(area.equals("永川")){
-                parkadeListOperationsOperations.rightPushAll(RedisConstants.PARKADE_YONGCHUAN_List_KEY, parkadeList);
-            }else{
-                parkadeListOperationsOperations.rightPushAll(RedisConstants.PARKADE_BANAN_List_KEY, parkadeList);
+            if(parkadeList.size() != 0){
+                if(area.equals("永川")){
+                    parkadeListOperationsOperations.rightPushAll(RedisConstants.PARKADE_YONGCHUAN_List_KEY, parkadeList);
+                }else{
+                    parkadeListOperationsOperations.rightPushAll(RedisConstants.PARKADE_BANAN_List_KEY, parkadeList);
+                }
+                redisTemplate.expire(RedisConstants.PARKADE_YONGCHUAN_List_KEY, 1L, TimeUnit.DAYS);
+                redisTemplate.expire(RedisConstants.PARKADE_BANAN_List_KEY, 1L, TimeUnit.DAYS);
             }
-            redisTemplate.expire(RedisConstants.PARKADE_YONGCHUAN_List_KEY, 1L, TimeUnit.DAYS);
-            redisTemplate.expire(RedisConstants.PARKADE_BANAN_List_KEY, 1L, TimeUnit.DAYS);
         }
 
         //如果有缓存
@@ -679,7 +682,7 @@ public class VehicleController {
     @GetMapping("/listCarImg")
     public R<List<VehicleCarImg>> listCarImg(@RequestParam("id") BigInteger id){
         log.info("/vehicle/listCarImg get -> id = {}; 单个车辆的图片列表查询", id);
-        if(id == null || id.equals(0)){
+        if(id == null || id.equals(BigInteger.ZERO)){
             return R.error("查询图片id出错");
         }
         List<VehicleCarImg> vehicleCarImgList;
@@ -689,8 +692,10 @@ public class VehicleController {
             LambdaQueryWrapper<VehicleCarImg> lambdaQueryWrapper = new LambdaQueryWrapper<>();
             lambdaQueryWrapper.eq(VehicleCarImg::getVehicleCarId, id);
             vehicleCarImgList = vehicleCarImgService.list(lambdaQueryWrapper);
-            vehicleCarImgValueOperations.rightPushAll(RedisConstants.CAR_IMG_List_KEY + id, vehicleCarImgList);
-            redisTemplate.expire(RedisConstants.CAR_IMG_List_KEY + id, 1L, TimeUnit.DAYS);
+            if(vehicleCarImgList.size() != 0){
+                vehicleCarImgValueOperations.rightPushAll(RedisConstants.CAR_IMG_List_KEY + id, vehicleCarImgList);
+                redisTemplate.expire(RedisConstants.CAR_IMG_List_KEY + id, 1L, TimeUnit.DAYS);
+            }
         }
         return R.success(vehicleCarImgList, "获取车辆图片数据");
     }
